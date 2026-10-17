@@ -22,9 +22,10 @@ type Server struct {
 	cfg    *config.Config
 	db     *mongo.Database
 	mongo  *database.Client
+	redis  *database.Redis
 }
 
-func NewServer(cfg *config.Config, db *mongo.Database, mongoClient *database.Client) *Server {
+func NewServer(cfg *config.Config, db *mongo.Database, mongoClient *database.Client, redisClient *database.Redis) *Server {
 	gin.SetMode(cfg.Server.GinMode)
 	engine := gin.New()
 
@@ -33,6 +34,7 @@ func NewServer(cfg *config.Config, db *mongo.Database, mongoClient *database.Cli
 		cfg:    cfg,
 		db:     db,
 		mongo:  mongoClient,
+		redis:  redisClient,
 	}
 
 	srv.setupMiddleware()
@@ -53,12 +55,26 @@ func (s *Server) setupRoutes() {
 		defer cancel()
 
 		status := gin.H{"status": "ok"}
+		healthy := true
+
 		if err := s.mongo.Client.Ping(ctx, nil); err != nil {
 			status["database"] = "error"
+			healthy = false
+		} else {
+			status["database"] = "ok"
+		}
+
+		if err := s.redis.Ping(ctx); err != nil {
+			status["redis"] = "error"
+			healthy = false
+		} else {
+			status["redis"] = "ok"
+		}
+
+		if !healthy {
 			c.JSON(http.StatusServiceUnavailable, status)
 			return
 		}
-		status["database"] = "ok"
 		c.JSON(http.StatusOK, status)
 	})
 

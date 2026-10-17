@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Server     ServerConfig
 	Database   DatabaseConfig
+	Redis      RedisConfig
 	JWT        JWTConfig
 	CORS       CORSConfig
 	Encryption EncryptionConfig
@@ -33,6 +34,13 @@ type DatabaseConfig struct {
 	MaxPoolSize    int
 	MinPoolSize    int
 	MaxIdleMinutes int
+}
+
+type RedisConfig struct {
+	Addr     string
+	Password string
+	DB       int
+	PoolSize int
 }
 
 type JWTConfig struct {
@@ -70,6 +78,12 @@ func Load() *Config {
 			MinPoolSize:    getEnvAsInt("MONGODB_MIN_POOL_SIZE", 10),
 			MaxIdleMinutes: getEnvAsInt("MONGODB_CONN_MAX_IDLE_MINUTES", 30),
 		},
+		Redis: RedisConfig{
+			Addr:     getEnv("REDIS_ADDR", "localhost:6379"),
+			Password: getEnv("REDIS_PASSWORD", ""),
+			DB:       getEnvAsInt("REDIS_DB", 0),
+			PoolSize: getEnvAsInt("REDIS_POOL_SIZE", 10),
+		},
 		JWT: JWTConfig{
 			AccessSecret:     getEnv("JWT_ACCESS_SECRET", defaultAccessSecret),
 			RefreshSecret:    getEnv("JWT_REFRESH_SECRET", defaultRefreshSecret),
@@ -99,6 +113,7 @@ func Load() *Config {
 	slog.Info("config loaded",
 		"port", cfg.Server.Port,
 		"db_name", cfg.Database.Name,
+		"redis_addr", cfg.Redis.Addr,
 		"issuer", cfg.JWT.Issuer,
 	)
 

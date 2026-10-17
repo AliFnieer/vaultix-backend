@@ -12,9 +12,15 @@ import (
 	"github.com/AliFnieer/vaultix-backend/internal/config"
 	"github.com/AliFnieer/vaultix-backend/internal/database"
 	"github.com/AliFnieer/vaultix-backend/internal/server"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file if present (existing environment variables take precedence)
+	if err := godotenv.Load(); err != nil {
+		slog.Info("no .env file found, using process environment")
+	}
+
 	// Load configuration
 	cfg := config.Load()
 
@@ -42,8 +48,21 @@ func main() {
 
 	slog.Info("MongoDB connected and indexes ensured", "database", cfg.Database.Name)
 
+	// Connect to Redis
+	redisClient, err := database.NewRedis(
+		cfg.Redis.Addr,
+		cfg.Redis.Password,
+		cfg.Redis.DB,
+		cfg.Redis.PoolSize,
+	)
+	if err != nil {
+		slog.Error("failed to connect to Redis", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("Redis connected", "addr", cfg.Redis.Addr, "db", cfg.Redis.DB)
+
 	// Create server
-	srv := server.NewServer(cfg, mongoClient.Database, mongoClient)
+	srv := server.NewServer(cfg, mongoClient.Database, mongoClient, redisClient)
 
 	// Create HTTP server
 	httpServer := &http.Server{
@@ -67,6 +86,10 @@ func main() {
 
 		if err := mongoClient.Close(shutdownCtx); err != nil {
 			slog.Error("failed to close MongoDB connection", "error", err)
+		}
+
+		if err := redisClient.Close(); err != nil {
+			slog.Error("failed to close Redis connection", "error", err)
 		}
 	}()
 

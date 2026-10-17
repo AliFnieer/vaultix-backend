@@ -2,7 +2,7 @@
 # Vaultix Backend - Local development stack
 # =============================================================================
 #   docker compose up -d
-# Services: vaultix-backend (Go API) + mongodb
+# Services: vaultix-backend (Go API) + mongodb + redis
 # =============================================================================
 
 services:
@@ -20,6 +20,20 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: vaultix-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - vaultix_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: .
     container_name: vaultix-backend
@@ -27,14 +41,18 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "8080:8080"
     env_file:
       - .env
     environment:
       - MONGODB_URI=mongodb://mongodb:27017
+      - REDIS_ADDR=redis:6379
     volumes:
       - .:/app:ro  # not required at runtime; removed in production builds
 
 volumes:
   vaultix_mongo_data:
+  vaultix_redis_data:
