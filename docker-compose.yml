@@ -1,0 +1,40 @@
+# =============================================================================
+# Vaultix Backend - Local development stack
+# =============================================================================
+#   docker compose up -d
+# Services: vaultix-backend (Go API) + mongodb
+# =============================================================================
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: vaultix-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - vaultix_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand({ping:1})"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: vaultix-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+    volumes:
+      - .:/app:ro  # not required at runtime; removed in production builds
+
+volumes:
+  vaultix_mongo_data:
