@@ -9,6 +9,7 @@ import (
 	"github.com/AliFnieer/vaultix-backend/internal/auth"
 	"github.com/AliFnieer/vaultix-backend/internal/config"
 	"github.com/AliFnieer/vaultix-backend/internal/database"
+	"github.com/AliFnieer/vaultix-backend/internal/docs"
 	"github.com/AliFnieer/vaultix-backend/internal/middleware"
 	"github.com/AliFnieer/vaultix-backend/internal/secret"
 	"github.com/AliFnieer/vaultix-backend/internal/user"
@@ -77,6 +78,11 @@ func (s *Server) setupRoutes() {
 		}
 		c.JSON(http.StatusOK, status)
 	})
+
+	// API documentation
+	s.engine.GET("/docs", gin.WrapH(docs.SwaggerUIHandler()))
+	s.engine.GET("/docs/redoc", gin.WrapH(docs.RedocUIHandler()))
+	s.engine.GET("/docs/openapi.json", gin.WrapH(http.HandlerFunc(docs.ServeOpenAPIHandler)))
 
 	// API v1 routes
 	apiV1 := s.engine.Group("/api/v1")
