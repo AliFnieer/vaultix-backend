@@ -8,8 +8,8 @@ import (
 func TestLoad_Defaults(t *testing.T) {
 	cfg := Load()
 
-	if cfg.Server.Port != "8080" {
-		t.Errorf("Expected default port 8080, got %s", cfg.Server.Port)
+	if cfg.Server.Port != "8081" {
+		t.Errorf("Expected default port 8081, got %s", cfg.Server.Port)
 	}
 	if cfg.Server.GinMode != "debug" {
 		t.Errorf("Expected default gin mode debug, got %s", cfg.Server.GinMode)
