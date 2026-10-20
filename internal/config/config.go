@@ -68,7 +68,7 @@ const (
 func Load() *Config {
 	cfg := &Config{
 		Server: ServerConfig{
-			Port:    getEnv("APP_PORT", "8080"),
+			Port:    getEnv("APP_PORT", "8081"),
 			GinMode: getEnv("GIN_MODE", "debug"),
 		},
 		Database: DatabaseConfig{

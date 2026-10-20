@@ -62,7 +62,7 @@ go mod tidy
 go run ./cmd/server
 ```
 
-Server listens on `:8080` (configurable via `APP_PORT`).
+Server listens on `:8081` (configurable via `APP_PORT`).
 
 ### 3. Run with Docker Compose
 ```bash

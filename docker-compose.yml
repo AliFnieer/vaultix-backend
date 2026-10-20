@@ -25,7 +25,7 @@ services:
     container_name: vaultix-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - vaultix_redis_data:/data
     healthcheck:
@@ -44,14 +44,13 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8081:8081"
     env_file:
       - .env
     environment:
       - MONGODB_URI=mongodb://mongodb:27017
       - REDIS_ADDR=redis:6379
-    volumes:
-      - .:/app:ro  # not required at runtime; removed in production builds
+    
 
 volumes:
   vaultix_mongo_data:
